@@ -27,7 +27,7 @@ type Message struct {
 type MessengerAPI int
 
 func (m *MessengerAPI) MessagePost(message *Message, reply *int) error {
-	fmt.Println("Transcript:" + (*message).Transcript + "\tSID:" + (*message).SID)
+	fmt.Println((*message).SID + ":\t" + (*message).Transcript + "\t(" + strconv.Itoa((*message).TSM) + ")")
 	*reply = 1
 	return nil
 }
@@ -54,7 +54,6 @@ func connectMessenger() {
 
 	// Start the messenger (this will start on all peers at the same time thanks to the loop above)
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Println(myID + "Joined to messenger")
 	var reply int
 	for {
 		scanner.Scan()
