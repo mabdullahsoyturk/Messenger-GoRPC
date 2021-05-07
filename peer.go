@@ -27,6 +27,8 @@ type Message struct {
 type MessengerAPI int
 
 func (m *MessengerAPI) MessagePost(message *Message, reply *int) error {
+	fmt.Println("Transcript:" + (*message).Transcript + "SID:" + (*message).SID)
+	*reply = 1
 	return nil
 }
 
