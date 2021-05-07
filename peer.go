@@ -36,24 +36,25 @@ func (m *MessengerAPI) MessagePost(message *Message, reply *int) error {
 func connectMessenger() {
 	i := 0
 	for {
-		client, err := rpc.Dial("tcp", peers[i]) // Try to connect to the peer
+		client, err := rpc.Dial("tcp", peers[i]) // Try to connect to the ith peer
 		if err == nil {
 			fmt.Printf("Connected to %s\n", peers[i])
-			peers = append(peers[:i], peers[i+1:]...) // Remove the connected peer
+			peers = append(peers[:i], peers[i+1:]...) // Remove the connected peer from peers
 			peerClients = append(peerClients, client)
+		} else {
+			fmt.Println("Couldn't connect" + peers[i] + " trying next peer")
 		}
 
 		if len(peers) > 0 {
 			i = (i + 1) % len(peers) // if there is a next peer, try to connect it
 		} else {
-			break
+			break // We are now connected to all pairs. 
 		}
 
 		time.Sleep(1000 * time.Millisecond) // Try every second
 	}
-	fmt.Printf("Connected to all peers!\n\n")
+	fmt.Printf("Connected to all peers\n")
 
-	// Start the messenger (this will start on all peers at the same time thanks to the loop above)
 	scanner := bufio.NewScanner(os.Stdin)
 	var reply int
 	for {
@@ -62,10 +63,7 @@ func connectMessenger() {
 
 		// Create the message
 		senderSequenceNumber++
-		msg := new(Message)
-		msg.Transcript = input
-		msg.SID = myID
-		msg.TSM = senderSequenceNumber
+		msg := Message{input, myID, senderSequenceNumber}
 
 		// Multicast the message
 		for _, client := range peerClients {
