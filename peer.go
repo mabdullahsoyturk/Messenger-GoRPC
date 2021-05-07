@@ -64,6 +64,7 @@ func connectMessenger() {
 		// Create the message
 		senderSequenceNumber++
 		msg := Message{input, myID, senderSequenceNumber}
+		fmt.Println(msg.SID + ":\t" + msg.Transcript + "\t(" + strconv.Itoa(msg.TSM) + ")") // print my own message
 
 		// Multicast the message
 		for _, client := range peerClients {
@@ -81,27 +82,21 @@ func main() {
 	givenId := os.Args[1]
 
 	readPeers("group.txt", givenId)
-	/* fmt.Println(peers)
-	fmt.Println(myID)
-	fmt.Println(myIP)
-	fmt.Println(myPort) */
 
 	// Create MessengerAPI
 	api := new(MessengerAPI)
 	rpc.Register(api)
 
 	// Start the server
-	tcpAddr, err := net.ResolveTCPAddr("tcp", ":"+myPort)
-	checkError(err)
-	listener, err := net.ListenTCP("tcp", tcpAddr)
+	listener, err := net.Listen("tcp", myID)
 	checkError(err)
 	fmt.Println("> Service is running!")
 
-	// Connect Messenger
+	// Connect to Peers
 	go connectMessenger()
 
 	for {
-		conn, err := listener.Accept()
+		conn, err := listener.Accept() // Wait for connections
 		if err != nil {
 			continue
 		}
