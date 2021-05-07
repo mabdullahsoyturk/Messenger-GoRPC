@@ -12,8 +12,8 @@ import (
 	"time"
 )
 
-var peers []string
-var peerClients []*rpc.Client
+var peerIDs []string
+var peerConnections []*rpc.Client
 var myID string
 var myPort string
 var myIP string
@@ -36,19 +36,19 @@ func (m *MessengerAPI) MessagePost(message *Message, reply *int) error {
 func connectMessenger() {
 	i := 0
 	for {
-		client, err := rpc.Dial("tcp", peers[i]) // Try to connect to the ith peer
+		client, err := rpc.Dial("tcp", peerIDs[i]) // Try to connect to the ith peer
 		if err == nil {
-			fmt.Printf("Connected to %s\n", peers[i])
-			peers = append(peers[:i], peers[i+1:]...) // Remove the connected peer from peers
-			peerClients = append(peerClients, client)
+			fmt.Printf("Connected to %s\n", peerIDs[i])
+			peerIDs = append(peerIDs[:i], peerIDs[i+1:]...) // Remove the connected peer from peers
+			peerConnections = append(peerConnections, client)
 		} else {
-			fmt.Println("Couldn't connect" + peers[i] + " trying next peer")
+			fmt.Println("Couldn't connect" + peerIDs[i] + " trying next peer")
 		}
 
-		if len(peers) > 0 {
-			i = (i + 1) % len(peers) // if there is a next peer, try to connect it
+		if len(peerIDs) > 0 {
+			i = (i + 1) % len(peerIDs) // if there is a next peer, try to connect it
 		} else {
-			break // We are now connected to all pairs. 
+			break // We are now connected to all pairs.
 		}
 
 		time.Sleep(1000 * time.Millisecond) // Try every second
@@ -67,7 +67,7 @@ func connectMessenger() {
 		fmt.Println(msg.SID + ":\t" + msg.Transcript + "\t(" + strconv.Itoa(msg.TSM) + ")") // print my own message
 
 		// Multicast the message
-		for _, client := range peerClients {
+		for _, client := range peerConnections {
 			err := client.Call("MessengerAPI.MessagePost", msg, &reply)
 			checkError(err)
 		}
@@ -123,7 +123,7 @@ func readPeers(filename string, givenId string) {
 		} else {
 			peerIP := strings.Split(peerId, "/")[0]
 			peerPort := strings.Split(peerId, "/")[1]
-			peers = append(peers, peerIP+":"+peerPort)
+			peerIDs = append(peerIDs, peerIP+":"+peerPort)
 		}
 	}
 
